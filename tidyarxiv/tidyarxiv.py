@@ -39,16 +39,16 @@ def filter_tex(filepath):
   with open(filepath, 'w', encoding='utf-8') as f:
     f.write(''.join(contents))
 
-def write_build_log(filepath, made):
+def write_build_log(filepath, build_result):
   """Write build log to specified file path"""
   with open(filepath, 'w', encoding='utf-8') as f:
     f.write('STDERR:\n')
     f.write('=======\n')
-    f.write(made.stderr.decode('utf-8'))
+    f.write(build_result.stderr.decode('utf-8'))
     f.write('\n')
     f.write('STDOUT:\n')
     f.write('=======\n')
-    f.write(made.stdout.decode('utf-8'))
+    f.write(build_result.stdout.decode('utf-8'))
     f.write('\n')
 
 def main():
@@ -169,7 +169,6 @@ def main():
 
     shutil.copy(os.path.join(tmpdirname, f'{target}.pdf'), os.path.join(outdir, f'{target}_{build_time}.pdf'))
 
-    # Store build log for successful build
     write_build_log(os.path.join(outdir, f'{target}_{build_time}.log'), made)
 
     print('Tarball created: ', os.path.join(outdir, f'{target}_{build_time}.tar.gz'))
