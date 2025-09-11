@@ -53,8 +53,9 @@ def write_build_log(filepath, build_result):
     f.write('\n')
 
 def main(
-    config_file: Optional[str] = typer.Argument(
+    config_file: Optional[str] = typer.Option(
         None,
+        "--config",
         help="Path to the configuration file. Defaults to TIDYARXIV_CONFIG_NAME env var or 'tidyarxiv.cfg'",
         envvar="TIDYARXIV_CONFIG_NAME"
     )
