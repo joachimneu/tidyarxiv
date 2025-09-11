@@ -44,11 +44,11 @@ def write_build_log(filepath, build_result):
   with open(filepath, 'w', encoding='utf-8') as f:
     f.write('STDERR:\n')
     f.write('=======\n')
-    f.write(build_result.stderr.decode('utf-8'))
+    f.write(build_result.stderr.decode('utf-8', errors='backslashreplace'))
     f.write('\n')
     f.write('STDOUT:\n')
     f.write('=======\n')
-    f.write(build_result.stdout.decode('utf-8'))
+    f.write(build_result.stdout.decode('utf-8', errors='backslashreplace'))
     f.write('\n')
 
 def main():
