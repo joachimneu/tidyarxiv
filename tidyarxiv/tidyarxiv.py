@@ -198,6 +198,8 @@ def main(
       else:
         print(f'Warning: Metadata file "{metadata_file}" not found. Skipping metadata file copy.')
 
-
-if __name__ == '__main__':
+def main_entry():
   typer.run(main)
+  
+if __name__ == '__main__':
+  main_entry()
