@@ -72,6 +72,10 @@ def main():
     else:
       print(f'No "target" specified in "{CONFIG_NAME}" file. Using "main".')
   
+  jobname = target
+  if 'jobname' in config:
+    jobname = config['jobname']
+
   outdir = config.get('outdir', '.')
   if not os.path.isdir(outdir):
     print(f'Output directory "{outdir}" not found. Check the "outdir" in your "{CONFIG_NAME}" file.')
@@ -101,11 +105,11 @@ def main():
   else:
     arxiv_files_exclude += ['**/*.bib']
 
-  build_command = 'latexmk -pdf %FILE%'
+  build_command = 'latexmk -pdf -jobname=%JOBNAME% %FILE%'
   if 'build_command' in config:
     build_command = config['build_command']
 
-  build_command = [part.replace(r'%FILE%', f'{target}.tex') for part in build_command.split(' ')]
+  build_command = [part.replace(r'%FILE%', f'{target}.tex').replace(r'%JOBNAME%', jobname) for part in build_command.split(' ')]
 
   filter_files = ['**/*.tex', '**/*.sty']
   if 'filter_files' in config:
@@ -157,7 +161,7 @@ def main():
 
     build_time = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
 
-    with tarfile.open(os.path.join(outdir, f'{target}_{build_time}.tar.gz'), 'w:gz') as tar:
+    with tarfile.open(os.path.join(outdir, f'{jobname}_{build_time}.tar.gz'), 'w:gz') as tar:
       arxiv_files = build_file_list(arxiv_files_include, arxiv_files_exclude, rootdir=tmpdirname)
 
       for filename in sorted(arxiv_files):
@@ -167,22 +171,23 @@ def main():
         print('\tAdding', filename)
         tar.add(os.path.join(tmpdirname, filename), arcname=filename)
 
-    shutil.copy(os.path.join(tmpdirname, f'{target}.pdf'), os.path.join(outdir, f'{target}_{build_time}.pdf'))
+    print('Tarball created: ', os.path.join(outdir, f'{jobname}_{build_time}.tar.gz'))
 
-    write_build_log(os.path.join(outdir, f'{target}_{build_time}.log'), made)
+    shutil.copy(os.path.join(tmpdirname, f'{jobname}.pdf'), os.path.join(outdir, f'{jobname}_{build_time}.pdf'))
+    print('PDF created: ', os.path.join(outdir, f'{jobname}_{build_time}.pdf'))
+
+    write_build_log(os.path.join(outdir, f'{jobname}_{build_time}.log'), made)
+    print('Build log saved: ', os.path.join(outdir, f'{jobname}_{build_time}.log'))
 
     # Copy metadata file if specified in config
     if 'metadata_file' in config:
       metadata_file = config['metadata_file']
       if os.path.isfile(metadata_file):
-        shutil.copy(metadata_file, os.path.join(outdir, f'{target}_{build_time}.txt'))
-        print('Metadata file copied: ', os.path.join(outdir, f'{target}_{build_time}.txt'))
+        shutil.copy(metadata_file, os.path.join(outdir, f'{jobname}_{build_time}.txt'))
+        print('Metadata file copied: ', os.path.join(outdir, f'{jobname}_{build_time}.txt'))
       else:
         print(f'Warning: Metadata file "{metadata_file}" not found. Skipping metadata file copy.')
 
-    print('Tarball created: ', os.path.join(outdir, f'{target}_{build_time}.tar.gz'))
-    print('PDF created: ', os.path.join(outdir, f'{target}_{build_time}.pdf'))
-    print('Build log saved: ', os.path.join(outdir, f'{target}_{build_time}.log'))
 
 if __name__ == '__main__':
   main()
