@@ -7,8 +7,9 @@ import re
 import tarfile
 import datetime
 import json
+import typer
+from typing import Optional
 
-CONFIG_NAME = os.environ.get('TIDYARXIV_CONFIG_NAME', 'tidyarxiv.cfg')
 
 def build_file_list(include_globs, exclude_globs, rootdir=None):
   print('Include globs: ', include_globs)
@@ -51,26 +52,35 @@ def write_build_log(filepath, build_result):
     f.write(build_result.stdout.decode('utf-8', errors='backslashreplace'))
     f.write('\n')
 
-def main():
+def main(
+    config_file: Optional[str] = typer.Argument(
+        None,
+        help="Path to the configuration file. Defaults to TIDYARXIV_CONFIG_NAME env var or 'tidyarxiv.cfg'",
+        envvar="TIDYARXIV_CONFIG_NAME"
+    )
+):
+  if config_file is None:
+    config_file = 'tidyarxiv.cfg'
+  
   try:
-    with open(CONFIG_NAME, encoding='utf-8') as f:
+    with open(config_file, encoding='utf-8') as f:
       config = json.loads(f.read())
   except FileNotFoundError:
-    print(f'No "{CONFIG_NAME}" file found. Create a "{CONFIG_NAME}" file in the root of your project.')
+    print(f'No "{config_file}" file found. Create a "{config_file}" file in the root of your project.')
     sys.exit(1)
 
   target = 'main'
   if 'target' in config:
     target = config['target']
     if not os.path.isfile(f'{target}.tex'):
-      print(f'No "{target}.tex" file was found. Check the "target" in your "{CONFIG_NAME}" file.')
+      print(f'No "{target}.tex" file was found. Check the "target" in your "{config_file}" file.')
       sys.exit(1)
   else:
     if not os.path.isfile('main.tex'):
-      print(f'No "main.tex" file found. Specify a "target" in your "{CONFIG_NAME}" file.')
+      print(f'No "main.tex" file found. Specify a "target" in your "{config_file}" file.')
       sys.exit(1)
     else:
-      print(f'No "target" specified in "{CONFIG_NAME}" file. Using "main".')
+      print(f'No "target" specified in "{config_file}" file. Using "main".')
   
   jobname = target
   if 'jobname' in config:
@@ -78,7 +88,7 @@ def main():
 
   outdir = config.get('outdir', '.')
   if not os.path.isdir(outdir):
-    print(f'Output directory "{outdir}" not found. Check the "outdir" in your "{CONFIG_NAME}" file.')
+    print(f'Output directory "{outdir}" not found. Check the "outdir" in your "{config_file}" file.')
     sys.exit(1)
 
   files = ['**/*.tex', '**/*.sty', '**/*.bib']
@@ -190,4 +200,4 @@ def main():
 
 
 if __name__ == '__main__':
-  main()
+  typer.run(main)
